@@ -1,0 +1,37 @@
+{
+  "name": "reefbreak",
+  "license": "MIT",
+  "version": "0.1.0",
+  "description": "A wavy animation engine powered by SVG filters.",
+  "author": "Jimmy Richardson",
+  "source": "index.js",
+  "main": "index.js",
+  "umd:main": "index.js",
+  "module": "index.js",
+  "keywords": [
+    "svg",
+    "filter",
+    "wave",
+    "waves",
+    "animation",
+    "effects",
+    "3d"
+  ],
+  "contributors": [
+    {
+      "name": "Jimmy Richardson",
+      "email": "jlrichii@gmail.com",
+      "url": "https://jimmyrichardson.co"
+    }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jimmyrichardson/reefbreak.js.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jimmyrichardson/reefbreak.js/issues"
+  },
+  "files": [
+    "index.js"
+  ]
+}
