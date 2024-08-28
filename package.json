@@ -33,5 +33,12 @@
   },
   "files": [
     "index.js"
-  ]
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "vite": "^5.4.2"
+  }
 }
