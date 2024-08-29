@@ -1,8 +1,9 @@
 :root {
   --spacing: 3rem;
   --color-white: #fefaff;
-  --color-black: #1f0000;
+  --color-black: #2A2B32;
   --color-lightgrey: #f0f0f0;
+  --color-olive: #DCE2CB;
 }
 
 * {
@@ -12,37 +13,84 @@
 }
 
 body {
-  font-family: 'Arial', sans-serif;
+  font-family: 'Switzer', helvetica, sans-serif;
   background-color: var(--color-white);
   color: var(--color-black);
   font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+nav a {
+  font-style: italic;
+  text-transform: lowercase;
+  letter-spacing: 0.025rem;
 }
 
 nav {
   position: fixed;
   right: 0;
-  top: 0;
+  top: calc(var(--spacing) / 2);
+  z-index: 9999;
+  padding-inline: 1rem;
 
   a {
     display: inline-block;
     padding: 1rem;
     text-decoration: none;
     color: var(--color-black);
+    font-weight: 600;
+
+    &:not(:last-child) {
+      display: none;
+
+      @media(min-width: 767px) {
+        display: inline-block;
+      }
+    }
   }
 }
 
 header {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  width: calc(100vw - var(--spacing) * 2);
-  height: calc(100dvh - var(--spacing) * 2);
-  transform: translate(var(--spacing), var(--spacing) * -1);
+  padding-block: calc(var(--spacing) * 3) calc(var(--spacing));
+  text-align: center;
+
+  @media(min-width: 767px) {
+    padding-block: calc(var(--spacing) * 5) calc(var(--spacing) * 4);
+  }
+
+  p {
+    padding-block-start: var(--spacing);
+    padding-inline: var(--spacing);
+  }
 }
 
 h1 {
-  font-size: max(6vw, 3rem);
+  font-size: max(8vw, 3.5rem);
+  line-height: max(8vw, 3.5rem);
+  display: flex;
+  margin-inline: auto;
+  max-width: 80%;
+
+  @media(min-width: 767px) {
+    max-width: 60%;
+  }
+
+  &:before {
+    content: "*";
+    vertical-align: baseline;
+    font-weight: 500;
+    font-size: 200%;
+    line-height: 0;
+    transform: translateY(90%);
+    display: inline-block;
+    margin-inline-end: 2%;
+    color: var(--color-olive);
+  }
+
 }
 
 h2 {
@@ -53,18 +101,38 @@ pre.prettyprint {
   background-color: var(--color-lightgrey);
   padding: 2rem !important;
   border: none !important;
+  text-wrap: pretty;
 }
 
 section {
-  display: flex;
+  padding-block: 2rem;
+  padding-inline: 1rem;
+
+  @media(min-width: 767px) {
+    display: flex;
+    padding: var(--spacing);
+  }
 
   .left {
     flex: 1;
-    padding: 2rem;
+
+    @media(min-width: 767px) {
+      padding: 2rem;
+    }
+
+    h2 {
+      position: sticky;
+      top: 0;
+      left: 0;
+      padding-block-end: 2rem;
+    }
   }
 
   .right {
     flex: 0 0 66.666%;
-    padding: 2rem;
+
+    @media(min-width: 767px) {
+      padding: 3rem;
+    }
   }
 }

@@ -3,7 +3,10 @@
 
 <head>
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ReefBreak.js</title>
+  <title>ReefBreak.js | A wavy text animation engine powered by SVG filters.</title>
+  <link rel="shortcut icon" href="img/favicon.ico" type="image/x-icon">
+  <link href="https://api.fontshare.com/css?f[]=switzer@400,600,800&witzer-italic@400,600,800&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="css/main.css">
 </head>
 
@@ -16,12 +19,13 @@
     <a href="https://jimmyrichardson.co" target="_blank">jimmyrichardson.co</a>
   </nav>
   <header>
-    <h1 data-reefbreak>reefbreak.js</h1>
-    <p>A wavy animation engine powered by SVG filters.</p>
+    <h1 data-reefbreak>
+      reefbreak.js</h1>
+    <p>A wavy text animation engine powered by SVG filters.</p>
   </header>
   <section id="get-started">
     <div class="left">
-      <h2>Get Started</h2>
+      <h2 data-reefbreak>Get Started</h2>
     </div>
     <div class="right">
       <p>ReefBreak.js is a lightweight JavaScript library that creates a wavy animation effect using SVG filters. It's
@@ -30,7 +34,7 @@
   </section>
   <section id="installation">
     <div class="left">
-      <h2>Installation</h2>
+      <h2 data-reefbreak>Installation</h2>
     </div>
     <div class="right">
       <pre class="prettyprint">npm install reefbreak</pre>
@@ -38,17 +42,24 @@
   </section>
   <section id="usage">
     <div class="left">
-      <h2>Usage</h2>
+      <h2 data-reefbreak>Usage</h2>
     </div>
     <div class="right">
       <pre class="prettyprint">
-import { reefbreak } from 'reefbreak';
-new reefbreak();</pre>
+import { ReefBreak } from 'reefbreak';
+new ReefBreak(
+  element, // defaults to '[data-reefbreak]'
+  {
+    intensity: 1, // defaults to 1
+    speed: 1, // defaults to 1
+    animate: true, // defaults to true
+  }
+);</pre>
     </div>
   </section>
   <section id="download">
     <div class="left">
-      <h2>Download</h2>
+      <h2 data-reefbreak>Download</h2>
     </div>
     <div class="right">
       <a href="https://raw.githubusercontent.com/jimmyrichardson/reefbreak.js/main/dist/reefbreak.mjs"
