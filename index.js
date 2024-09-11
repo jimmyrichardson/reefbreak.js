@@ -1,11 +1,6 @@
 export default class ReefBreak {
   constructor(
-    items = '[data-reefbreak]',
-    config = {
-      intensity: 1,
-      speed: 1,
-      animate: true,
-    }) {
+    config = {}) {
     this.NS = 'http://www.w3.org/2000/svg';
     this.svg = document.createElementNS(this.NS, 'svg');
     this.defs = document.createElementNS(this.NS, 'defs');
@@ -15,24 +10,31 @@ export default class ReefBreak {
     this.turbulence = document.createElementNS(this.NS, 'feTurbulence');
     this.displacement = document.createElementNS(this.NS, 'feDisplacementMap');
     this.composite = document.createElementNS(this.NS, 'feComposite');
-    this.config = {
-      blur: 2,
-      baseFrequency: 0.0125,
-      scale: 50,
+    this.defaults = {
+      target: '[data-reefbreak]',
+      intensity: 1,
+      speed: 1,
+      animate: true,
+    }
+    this.config = { ...this.defaults, ...config };
+    this.settings = {
+      blur: 2 * this.config.intensity,
+      baseFrequency: 0.0125 * this.config.intensity,
+      scale: 50 * this.config.intensity,
     };
-    this.init(items, config);
+    this.init(this.config);
   }
 
-  init(items, config) {
+  init(config) {
     this.createElements();
     this.initBlur();
     this.initColorMatrix();
     this.initTurbulence();
     this.initDisplacement();
     this.initComposite();
-    this.bindFilter(items);
+    this.bindFilter(config.target);
     if (config.animate) {
-      this.animate();
+      this.animate(config);
     }
   }
 
@@ -52,7 +54,7 @@ export default class ReefBreak {
   initBlur() {
     this.blur.setAttribute('in', 'SourceGraphic');
     this.blur.setAttribute('result', 'blur');
-    this.blur.setAttribute('stdDeviation', this.config.blur);
+    this.blur.setAttribute('stdDeviation', this.settings.blur);
   }
 
   initColorMatrix() {
@@ -67,14 +69,14 @@ export default class ReefBreak {
     this.turbulence.setAttribute('numOctaves', '1');
     this.turbulence.setAttribute('seed', '1');
     this.turbulence.setAttribute('result', 'noise');
-    this.turbulence.setAttribute('baseFrequency', this.config.baseFrequency);
+    this.turbulence.setAttribute('baseFrequency', this.settings.baseFrequency);
   }
 
   initDisplacement() {
     this.displacement.setAttribute('in', 'goo');
     this.displacement.setAttribute('in2', 'noise');
     this.displacement.setAttribute('result', 'displacement');
-    this.displacement.setAttribute('scale', this.config.scale);
+    this.displacement.setAttribute('scale', this.settings.scale);
   }
 
   initComposite() {
@@ -83,13 +85,13 @@ export default class ReefBreak {
     this.composite.setAttribute('operator', 'atop');
   }
 
-  animate() {
+  animate(config) {
     let time = 0;
     const animate = () => {
-      time += 0.005;
-      this.blur.setAttribute('stdDeviation', this.config.blur + Math.sin(time) * 1);
-      this.turbulence.setAttribute('baseFrequency', this.config.baseFrequency + Math.sin(time) * 0.01);
-      this.displacement.setAttribute('scale', this.config.scale + Math.sin(time) * 10);
+      time += (0.005 * config.speed);
+      this.blur.setAttribute('stdDeviation', this.settings.blur + Math.sin(time) * 1);
+      this.turbulence.setAttribute('baseFrequency', this.settings.baseFrequency + Math.sin(time) * 0.01);
+      this.displacement.setAttribute('scale', this.settings.scale + Math.sin(time) * 10);
       requestAnimationFrame(animate);
     }
     animate();
