@@ -3,19 +3,14 @@ import { resolve } from 'path';
 
 export default defineConfig({
   build: {
-    lib: {
-      entry: resolve(__dirname + '/index.js'),
-      name: 'reefbreak',
-    },
     outDir: 'dist',
-    // rollupOptions: {
-    //   input: {
-    //     reefbreak: resolve(__dirname + '/index.js'),
-    //   },
-    //   output: {
-    //     entryFileNames: 'reefbreak.min.js',
-    //     format: 'es',
-    //   },
-    // },
+    emptyOutDir: true,
+    lib: {
+      entry: resolve(__dirname, 'index.js'),
+      name: 'reefbreak',
+      formats: ['es', 'umd'],
+      // Produces dist/reefbreak.mjs (ESM) and dist/reefbreak.umd.js (UMD).
+      fileName: (format) => (format === 'es' ? 'reefbreak.mjs' : 'reefbreak.umd.js'),
+    },
   },
 });

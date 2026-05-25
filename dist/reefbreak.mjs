@@ -1,21 +1,32 @@
-class r {
+const e = "http://www.w3.org/2000/svg";
+let o = 0;
+class l {
   constructor(t = {}) {
-    this.NS = "http://www.w3.org/2000/svg", this.svg = document.createElementNS(this.NS, "svg"), this.defs = document.createElementNS(this.NS, "defs"), this.filter = document.createElementNS(this.NS, "filter"), this.blur = document.createElementNS(this.NS, "feGaussianBlur"), this.colorMatrix = document.createElementNS(this.NS, "feColorMatrix"), this.turbulence = document.createElementNS(this.NS, "feTurbulence"), this.displacement = document.createElementNS(this.NS, "feDisplacementMap"), this.composite = document.createElementNS(this.NS, "feComposite"), this.defaults = {
+    this.defaults = {
       target: "[data-reefbreak]",
       intensity: 1,
       speed: 1,
-      animate: !0
+      animate: !0,
+      respectReducedMotion: !0
     }, this.config = { ...this.defaults, ...t }, this.settings = {
       blur: 2 * this.config.intensity,
       baseFrequency: 0.0125 * this.config.intensity,
       scale: 50 * this.config.intensity
-    }, this.init(this.config);
+    }, this.id = `reefbreak-${o += 1}`, this._rafId = null, this._targets = [], this._whenReady(() => this.init());
   }
-  init(t) {
-    this.createElements(), this.initBlur(), this.initColorMatrix(), this.initTurbulence(), this.initDisplacement(), this.initComposite(), this.bindFilter(t.target), t.animate && this.animate(t);
+  // Defer DOM work until the document is ready, and no-op outside the browser
+  // (e.g. server-side rendering) so importing the module never throws.
+  _whenReady(t) {
+    typeof document > "u" || (document.readyState === "loading" || !document.body ? document.addEventListener("DOMContentLoaded", t, { once: !0 }) : t());
+  }
+  init() {
+    this.createElements(), this.initBlur(), this.initColorMatrix(), this.initTurbulence(), this.initDisplacement(), this.initComposite(), this.bindFilter(this.config.target), this.config.animate && !this._prefersReducedMotion() && this.animate();
+  }
+  _prefersReducedMotion() {
+    return this.config.respectReducedMotion && typeof window < "u" && typeof window.matchMedia == "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   }
   createElements() {
-    this.svg.appendChild(this.defs), this.defs.appendChild(this.filter), this.filter.appendChild(this.blur), this.filter.appendChild(this.colorMatrix), this.filter.appendChild(this.turbulence), this.filter.appendChild(this.displacement), this.filter.appendChild(this.composite), this.svg.id = "reefbreak-svg", this.filter.id = "reefbreak", document.body.appendChild(this.svg);
+    this.svg = document.createElementNS(e, "svg"), this.defs = document.createElementNS(e, "defs"), this.filter = document.createElementNS(e, "filter"), this.blur = document.createElementNS(e, "feGaussianBlur"), this.colorMatrix = document.createElementNS(e, "feColorMatrix"), this.turbulence = document.createElementNS(e, "feTurbulence"), this.displacement = document.createElementNS(e, "feDisplacementMap"), this.composite = document.createElementNS(e, "feComposite"), this.svg.appendChild(this.defs), this.defs.appendChild(this.filter), this.filter.appendChild(this.blur), this.filter.appendChild(this.colorMatrix), this.filter.appendChild(this.turbulence), this.filter.appendChild(this.displacement), this.filter.appendChild(this.composite), this.svg.id = `${this.id}-svg`, this.filter.id = this.id, this.svg.setAttribute("width", "0"), this.svg.setAttribute("height", "0"), this.svg.setAttribute("aria-hidden", "true"), this.svg.style.cssText = "position:absolute;width:0;height:0;overflow:hidden", document.body.appendChild(this.svg);
   }
   initBlur() {
     this.blur.setAttribute("in", "SourceGraphic"), this.blur.setAttribute("result", "blur"), this.blur.setAttribute("stdDeviation", this.settings.blur);
@@ -32,19 +43,29 @@ class r {
   initComposite() {
     this.composite.setAttribute("in", "SourceGraphic"), this.composite.setAttribute("in2", "displacement"), this.composite.setAttribute("operator", "atop");
   }
-  animate(t) {
-    let e = 0;
-    const i = () => {
-      e += 5e-3 * t.speed, this.blur.setAttribute("stdDeviation", this.settings.blur + Math.sin(e) * 1), this.turbulence.setAttribute("baseFrequency", this.settings.baseFrequency + Math.sin(e) * 0.01), this.displacement.setAttribute("scale", this.settings.scale + Math.sin(e) * 10), requestAnimationFrame(i);
+  animate() {
+    const { speed: t } = this.config, { blur: i, baseFrequency: s, scale: h } = this.settings;
+    let n = 0;
+    const a = () => {
+      n += 5e-3 * t;
+      const r = Math.sin(n);
+      this.blur.setAttribute("stdDeviation", i + r), this.turbulence.setAttribute("baseFrequency", Math.max(1e-4, s + r * 0.01)), this.displacement.setAttribute("scale", h + r * 10), this._rafId = requestAnimationFrame(a);
     };
-    i();
+    this._rafId = requestAnimationFrame(a);
   }
   bindFilter(t) {
-    document.querySelectorAll(t).forEach((e) => {
-      e.style.filter = "url('#reefbreak')", e.style.webkitFilter = "url('#reefbreak')";
+    const i = `url('#${this.id}')`;
+    this._targets = Array.from(document.querySelectorAll(t)), this._targets.forEach((s) => {
+      s.style.filter = i, s.style.webkitFilter = i;
     });
+  }
+  // Stop the animation, remove the filter from targets, and clean up the SVG.
+  destroy() {
+    this._rafId !== null && (cancelAnimationFrame(this._rafId), this._rafId = null), this._targets.forEach((t) => {
+      t.style.filter = "", t.style.webkitFilter = "";
+    }), this._targets = [], this.svg && this.svg.parentNode && this.svg.parentNode.removeChild(this.svg);
   }
 }
 export {
-  r as default
+  l as default
 };

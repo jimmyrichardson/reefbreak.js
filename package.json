@@ -1,13 +1,23 @@
 {
   "name": "reefbreak",
   "license": "MIT",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "A wavy animation engine powered by SVG filters.",
   "author": "Jimmy Richardson",
   "source": "index.js",
-  "main": "index.js",
-  "umd:main": "index.js",
-  "module": "index.js",
+  "main": "./dist/reefbreak.umd.js",
+  "module": "./dist/reefbreak.mjs",
+  "unpkg": "./dist/reefbreak.umd.js",
+  "jsdelivr": "./dist/reefbreak.umd.js",
+  "exports": {
+    ".": {
+      "import": "./dist/reefbreak.mjs",
+      "require": "./dist/reefbreak.umd.js",
+      "default": "./dist/reefbreak.umd.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "sideEffects": false,
   "keywords": [
     "svg",
     "filter",
@@ -33,13 +43,15 @@
     "url": "https://github.com/jimmyrichardson/reefbreak.js/issues"
   },
   "files": [
+    "dist",
     "index.js"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vite build"
+    "build": "vite build",
+    "prepublishOnly": "npm run build"
   },
-  "dependencies": {
+  "devDependencies": {
     "vite": "^5.4.2"
   }
 }

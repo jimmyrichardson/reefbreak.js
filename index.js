@@ -1,44 +1,79 @@
+/**
+ * ReefBreak.js — a wavy animation engine powered by SVG filters.
+ * @see https://github.com/jimmyrichardson/reefbreak.js
+ */
+
+const SVG_NS = 'http://www.w3.org/2000/svg';
+
+// Lets multiple instances coexist without colliding on DOM ids.
+let instanceCount = 0;
+
 export default class ReefBreak {
-  constructor(
-    config = {}) {
-    this.NS = 'http://www.w3.org/2000/svg';
-    this.svg = document.createElementNS(this.NS, 'svg');
-    this.defs = document.createElementNS(this.NS, 'defs');
-    this.filter = document.createElementNS(this.NS, 'filter');
-    this.blur = document.createElementNS(this.NS, 'feGaussianBlur');
-    this.colorMatrix = document.createElementNS(this.NS, 'feColorMatrix');
-    this.turbulence = document.createElementNS(this.NS, 'feTurbulence');
-    this.displacement = document.createElementNS(this.NS, 'feDisplacementMap');
-    this.composite = document.createElementNS(this.NS, 'feComposite');
+  constructor(config = {}) {
     this.defaults = {
       target: '[data-reefbreak]',
       intensity: 1,
       speed: 1,
       animate: true,
-    }
+      respectReducedMotion: true,
+    };
     this.config = { ...this.defaults, ...config };
     this.settings = {
       blur: 2 * this.config.intensity,
       baseFrequency: 0.0125 * this.config.intensity,
       scale: 50 * this.config.intensity,
     };
-    this.init(this.config);
+
+    this.id = `reefbreak-${(instanceCount += 1)}`;
+    this._rafId = null;
+    this._targets = [];
+
+    this._whenReady(() => this.init());
   }
 
-  init(config) {
+  // Defer DOM work until the document is ready, and no-op outside the browser
+  // (e.g. server-side rendering) so importing the module never throws.
+  _whenReady(callback) {
+    if (typeof document === 'undefined') return;
+    if (document.readyState === 'loading' || !document.body) {
+      document.addEventListener('DOMContentLoaded', callback, { once: true });
+    } else {
+      callback();
+    }
+  }
+
+  init() {
     this.createElements();
     this.initBlur();
     this.initColorMatrix();
     this.initTurbulence();
     this.initDisplacement();
     this.initComposite();
-    this.bindFilter(config.target);
-    if (config.animate) {
-      this.animate(config);
+    this.bindFilter(this.config.target);
+    if (this.config.animate && !this._prefersReducedMotion()) {
+      this.animate();
     }
   }
 
+  _prefersReducedMotion() {
+    return (
+      this.config.respectReducedMotion &&
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
   createElements() {
+    this.svg = document.createElementNS(SVG_NS, 'svg');
+    this.defs = document.createElementNS(SVG_NS, 'defs');
+    this.filter = document.createElementNS(SVG_NS, 'filter');
+    this.blur = document.createElementNS(SVG_NS, 'feGaussianBlur');
+    this.colorMatrix = document.createElementNS(SVG_NS, 'feColorMatrix');
+    this.turbulence = document.createElementNS(SVG_NS, 'feTurbulence');
+    this.displacement = document.createElementNS(SVG_NS, 'feDisplacementMap');
+    this.composite = document.createElementNS(SVG_NS, 'feComposite');
+
     this.svg.appendChild(this.defs);
     this.defs.appendChild(this.filter);
     this.filter.appendChild(this.blur);
@@ -46,8 +81,17 @@ export default class ReefBreak {
     this.filter.appendChild(this.turbulence);
     this.filter.appendChild(this.displacement);
     this.filter.appendChild(this.composite);
-    this.svg.id = 'reefbreak-svg';
-    this.filter.id = 'reefbreak';
+
+    this.svg.id = `${this.id}-svg`;
+    this.filter.id = this.id;
+
+    // The host SVG only carries the <defs> filter — keep it out of layout and
+    // paint so it never renders as a stray box on the page.
+    this.svg.setAttribute('width', '0');
+    this.svg.setAttribute('height', '0');
+    this.svg.setAttribute('aria-hidden', 'true');
+    this.svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden';
+
     document.body.appendChild(this.svg);
   }
 
@@ -85,22 +129,46 @@ export default class ReefBreak {
     this.composite.setAttribute('operator', 'atop');
   }
 
-  animate(config) {
+  animate() {
+    const { speed } = this.config;
+    const { blur, baseFrequency, scale } = this.settings;
     let time = 0;
-    const animate = () => {
-      time += (0.005 * config.speed);
-      this.blur.setAttribute('stdDeviation', this.settings.blur + Math.sin(time) * 1);
-      this.turbulence.setAttribute('baseFrequency', this.settings.baseFrequency + Math.sin(time) * 0.01);
-      this.displacement.setAttribute('scale', this.settings.scale + Math.sin(time) * 10);
-      requestAnimationFrame(animate);
-    }
-    animate();
+
+    const tick = () => {
+      time += 0.005 * speed;
+      const wave = Math.sin(time);
+      this.blur.setAttribute('stdDeviation', blur + wave);
+      // baseFrequency must stay positive — clamp so low intensities stay valid.
+      this.turbulence.setAttribute('baseFrequency', Math.max(0.0001, baseFrequency + wave * 0.01));
+      this.displacement.setAttribute('scale', scale + wave * 10);
+      this._rafId = requestAnimationFrame(tick);
+    };
+
+    this._rafId = requestAnimationFrame(tick);
   }
 
-  bindFilter(items) {
-    document.querySelectorAll(items).forEach((item) => {
-      item.style.filter = "url('#reefbreak')";
-      item.style.webkitFilter = "url('#reefbreak')";
+  bindFilter(target) {
+    const value = `url('#${this.id}')`;
+    this._targets = Array.from(document.querySelectorAll(target));
+    this._targets.forEach((item) => {
+      item.style.filter = value;
+      item.style.webkitFilter = value;
     });
+  }
+
+  // Stop the animation, remove the filter from targets, and clean up the SVG.
+  destroy() {
+    if (this._rafId !== null) {
+      cancelAnimationFrame(this._rafId);
+      this._rafId = null;
+    }
+    this._targets.forEach((item) => {
+      item.style.filter = '';
+      item.style.webkitFilter = '';
+    });
+    this._targets = [];
+    if (this.svg && this.svg.parentNode) {
+      this.svg.parentNode.removeChild(this.svg);
+    }
   }
 }
